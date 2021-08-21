@@ -40,8 +40,8 @@ func createSchema() error {
 	}
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS connection (
-			first_channel_id   VARCHAR(64) REFERENCES channel(channel_id) ON DELETE CASCADE, 
-			second_channel_id  VARCHAR(64) REFERENCES channel(channel_id) ON DELETE CASCADE,
+			first_channel_id   VARCHAR(64) REFERENCES channel(channel_id), 
+			second_channel_id  VARCHAR(64) REFERENCES channel(channel_id),
 			UNIQUE (first_channel_id),
 			UNIQUE (second_channel_id)
 		)
@@ -84,8 +84,13 @@ func GetOtherChannelIDFromConnection(channelID string) (string, error) {
 	return firstChannelID, nil
 }
 
-func DeleteChannel(channelID string) error {
-	_, err := db.Exec("DELETE FROM channel WHERE channel_id = $1", channelID)
+func DeleteConnectionByChannelID(channelID string) error {
+	otherChannelID, err := GetOtherChannelIDFromConnection(channelID)
+	if err != nil {
+		return err
+	}
+	_, _ = db.Exec("DELETE FROM connection WHERE first_channel_id IN ($1, $2) AND second_channel_id IN ($1, $2)", channelID, otherChannelID)
+	_, _ = db.Exec("DELETE FROM channel WHERE channel_id IN ($1, $2)", channelID, otherChannelID)
 	return err
 }
 

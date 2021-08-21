@@ -83,7 +83,9 @@ func HandleMessage(bot *discordgo.Session, message *discordgo.MessageCreate) {
 				_ = bot.MessageReactionAdd(message.ChannelID, message.ID, "❌")
 			}
 		} else {
-			log.Println("[HandleMessage] Failed to get otherChannelID:", err.Error())
+			if err != database.ErrNotFound {
+				log.Println("[HandleMessage] Failed to get otherChannelID:", err.Error())
+			}
 		}
 	}
 }
@@ -137,7 +139,7 @@ func HandleBind(bot *discordgo.Session, fromChannelID, toChannelID string) {
 }
 
 func HandleUnbind(bot *discordgo.Session, channelID string) {
-	err := database.DeleteChannel(channelID)
+	err := database.DeleteConnectionByChannelID(channelID)
 	if err != nil {
 		_ = sendEmbed(bot, channelID, "Failed to unbind channel", "```"+err.Error()+"```")
 		return
