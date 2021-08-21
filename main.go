@@ -76,6 +76,9 @@ func HandleMessage(bot *discordgo.Session, message *discordgo.MessageCreate) {
 			for _, attachment := range message.Attachments {
 				attachments += attachment.URL
 			}
+			if len(message.Content) > 0 {
+				attachments = " " + attachments
+			}
 			_, err = bot.ChannelMessageSend(otherChannelID, message.Content+attachments)
 			if err == nil {
 				_ = bot.MessageReactionAdd(message.ChannelID, message.ID, "✅")
@@ -91,7 +94,7 @@ func HandleMessage(bot *discordgo.Session, message *discordgo.MessageCreate) {
 }
 
 func HandleClear(bot *discordgo.Session, message *discordgo.Message) {
-	messages, err := bot.ChannelMessages(message.ChannelID, 100, "", "", "")
+	messages, err := bot.ChannelMessages(message.ChannelID, 100, message.ID, "", "")
 	if err != nil {
 		log.Println("[HandleClear] Failed to retrieve messages in channel:", err.Error())
 		return
