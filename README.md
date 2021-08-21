@@ -4,10 +4,6 @@ This application allows cross-server communication by binding two text channels 
 This is an experimental project.
 
 
-## Prerequisites
-The bot must be present in both servers.
-
-
 ## Usage
 To invite the bot in the server: `https://discordapp.com/oauth2/authorize?client_id=<YOUR_BOT_CLIENT_ID>&scope=bot&permissions=108608`
 
