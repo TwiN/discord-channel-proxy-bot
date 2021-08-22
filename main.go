@@ -67,7 +67,7 @@ func HandleMessage(bot *discordgo.Session, message *discordgo.MessageCreate) {
 			HandleBind(bot, message.ChannelID, query)
 		case "unbind":
 			HandleUnbind(bot, message.ChannelID)
-		case "clear":
+		case "clear", "clean", "wipe", "nuke":
 			HandleClear(bot, message.Message)
 		}
 	} else {
