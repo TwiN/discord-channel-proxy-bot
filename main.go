@@ -99,7 +99,8 @@ func HandleClear(bot *discordgo.Session, message *discordgo.Message) {
 		log.Println("[HandleClear] Failed to retrieve messages in channel:", err.Error())
 		return
 	}
-	ids := make([]string, 0, len(messages))
+	ids := make([]string, 0, len(messages)+1)
+	ids[0] = message.ID
 	for _, m := range messages {
 		ids = append(ids, m.ID)
 	}
