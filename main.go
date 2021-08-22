@@ -61,7 +61,7 @@ func HandleMessage(bot *discordgo.Session, message *discordgo.MessageCreate) {
 		command := strings.Replace(strings.Split(message.Content, " ")[0], botCommandPrefix, "", 1)
 		query := strings.TrimSpace(strings.Replace(message.Content, botCommandPrefix+command, "", 1))
 		command = strings.ToLower(command)
-		log.Printf("[HandleMessage] command=%s; arguments=%s", command, query)
+		log.Printf("[HandleMessage] channel=%s; command=%s; arguments=%s", message.ChannelID, command, query)
 		switch command {
 		case "bind":
 			HandleBind(bot, message.ChannelID, query)
