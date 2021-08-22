@@ -79,6 +79,7 @@ func HandleMessage(bot *discordgo.Session, message *discordgo.MessageCreate) {
 			if len(message.Content) > 0 {
 				attachments = " " + attachments
 			}
+			log.Printf("[HandleMessage] Proxying message from=%s to=%s", message.ChannelID, otherChannelID)
 			_, err = bot.ChannelMessageSend(otherChannelID, message.Content+attachments)
 			if err == nil {
 				_ = bot.MessageReactionAdd(message.ChannelID, message.ID, "✅")
