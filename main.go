@@ -74,7 +74,9 @@ func HandleMessage(bot *discordgo.Session, message *discordgo.MessageCreate) {
 		case "unbind":
 			HandleUnbind(bot, message.ChannelID)
 		case "clear", "clean", "wipe", "nuke":
-			HandleClear(bot, message.Message)
+			HandleClear(bot, message.Message, false)
+		case "clearother":
+			HandleClear(bot, message.Message, true)
 		}
 	} else {
 		if otherChannelID, err := database.GetOtherChannelIDFromConnection(message.ChannelID); err == nil {
@@ -100,23 +102,36 @@ func HandleMessage(bot *discordgo.Session, message *discordgo.MessageCreate) {
 	}
 }
 
-func HandleClear(bot *discordgo.Session, message *discordgo.Message) {
-	messages, err := bot.ChannelMessages(message.ChannelID, 100, message.ID, "", "")
+func HandleClear(bot *discordgo.Session, message *discordgo.Message, target bool) {
+	var err error
+	var messages []*discordgo.Message
+	if target {
+		otherChannelId, err := database.GetOtherChannelIDFromConnection(message.ChannelID)
+		if err != nil {
+			log.Println("[HandleClear] Unable to get other channel ID:", err.Error())
+			return
+		}
+		messages, err = bot.ChannelMessages(otherChannelId, 100, "", "", "")
+	} else {
+		messages, err = bot.ChannelMessages(message.ChannelID, 100, message.ID, "", "")
+	}
 	if err != nil {
 		log.Println("[HandleClear] Failed to retrieve messages in channel:", err.Error())
 		return
 	}
-	ids := make([]string, 0, len(messages)+1)
-	ids[0] = message.ID
+	if len(messages) == 0 {
+		return
+	}
+	ids := make([]string, 0, len(messages))
 	for _, m := range messages {
 		ids = append(ids, m.ID)
 	}
-	if err := bot.ChannelMessagesBulkDelete(message.ChannelID, ids); err != nil {
+	if err := bot.ChannelMessagesBulkDelete(messages[0].ChannelID, ids); err != nil {
 		log.Println("[HandleClear] Failed to delete messages:", err.Error())
 		return
 	}
 	if len(ids) == 100 {
-		HandleClear(bot, message)
+		HandleClear(bot, message, target)
 	}
 }
 
