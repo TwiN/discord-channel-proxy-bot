@@ -10,6 +10,7 @@ This is an experimental project.
 | Environment variable | Description                           | Required | Default |
 |:-------------------- |:------------------------------------- |:--- |:---- |
 | DISCORD_BOT_TOKEN    | Discord bot token                     | yes | `""` |
+| COMMAND_PREFIX       | Character prepending all bot commands. | no | `!` |
 
 
 ## Getting started

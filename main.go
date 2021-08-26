@@ -16,11 +16,17 @@ import (
 
 var (
 	token               = os.Getenv("DISCORD_BOT_TOKEN")
-	botCommandPrefix    = "!"
+	botCommandPrefix    = os.Getenv("COMMAND_PREFIX")
 	pendingBindRequests = gocache.NewCache().WithMaxSize(1000)
 
 	killChannel chan os.Signal
 )
+
+func init() {
+	if len(botCommandPrefix) == 0 {
+		botCommandPrefix = "!"
+	}
+}
 
 func main() {
 	if err := database.Initialize("data.db"); err != nil {
