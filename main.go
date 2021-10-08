@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/TwinProduction/discord-channel-proxy-bot/database"
-	"github.com/TwinProduction/gocache"
+	"github.com/TwiN/discord-channel-proxy-bot/database"
+	"github.com/TwiN/gocache"
 	"github.com/bwmarrin/discordgo"
 )
 

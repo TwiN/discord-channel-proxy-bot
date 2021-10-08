@@ -1,6 +1,6 @@
-# github.com/TwinProduction/gocache v1.2.3
+# github.com/TwiN/gocache v1.2.4
 ## explicit
-github.com/TwinProduction/gocache
+github.com/TwiN/gocache
 # github.com/bwmarrin/discordgo v0.23.2
 ## explicit
 github.com/bwmarrin/discordgo
