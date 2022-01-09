@@ -139,6 +139,7 @@ func HandlePull(bot *discordgo.Session, message *discordgo.Message) {
 			_ = bot.MessageReactionAdd(messageToSend.ChannelID, messageToSend.ID, "✅")
 		}
 	}
+	_ = bot.ChannelMessageDelete(message.ChannelID, message.ID)
 }
 
 func proxyMessage(bot *discordgo.Session, message *discordgo.Message, targetChannelID string) error {
