@@ -7,10 +7,10 @@ This is an experimental project.
 
 
 ## Usage
-| Environment variable | Description                           | Required | Default |
-|:-------------------- |:------------------------------------- |:--- |:---- |
-| DISCORD_BOT_TOKEN    | Discord bot token                     | yes | `""` |
-| COMMAND_PREFIX       | Character prepending all bot commands. | no | `!` |
+| Environment variable | Description                            | Required | Default |
+|:---------------------|:---------------------------------------|:---------|:--------|
+| DISCORD_BOT_TOKEN    | Discord bot token                      | yes      | `""`    |
+| COMMAND_PREFIX       | Character prepending all bot commands. | no       | `!`     |
 
 
 ## Getting started
@@ -36,7 +36,5 @@ docker pull twinproduction/discord-channel-proxy-bot
 
 
 ## TODO
-- !lock
-- !unlock
 - !status (returns whether the channel is bound and whether it's locked)
 - !autoclean

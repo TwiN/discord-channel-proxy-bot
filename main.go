@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/TwiN/discord-channel-proxy-bot/database"
-	"github.com/TwiN/gocache"
+	"github.com/TwiN/gocache/v2"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -77,22 +77,24 @@ func HandleMessage(bot *discordgo.Session, message *discordgo.MessageCreate) {
 			HandleClear(bot, message.Message, false)
 		case "clearother":
 			HandleClear(bot, message.Message, true)
+		case "lock":
+			HandleLock(bot, message.Message, false)
+		case "unlock":
+			HandleLock(bot, message.Message, true)
+		case "pull":
+			HandlePull(bot, message.Message)
 		}
 	} else {
 		if otherChannelID, err := database.GetOtherChannelIDFromConnection(message.ChannelID); err == nil {
-			var attachments string
-			for _, attachment := range message.Attachments {
-				attachments += attachment.URL
+			if database.IsChannelLocked(otherChannelID) {
+				_ = bot.MessageReactionAdd(message.ChannelID, message.ID, "⌛")
+				log.Printf("[HandleMessage] Not proxying message from=%s to=%s because channel=%s is locked", message.ChannelID, otherChannelID, otherChannelID)
+				return
 			}
-			if len(message.Content) > 0 {
-				attachments = " " + attachments
-			}
-			log.Printf("[HandleMessage] Proxying message from=%s to=%s", message.ChannelID, otherChannelID)
-			_, err = bot.ChannelMessageSend(otherChannelID, message.Content+attachments)
-			if err == nil {
-				_ = bot.MessageReactionAdd(message.ChannelID, message.ID, "✅")
-			} else {
+			if err := proxyMessage(bot, message.Message, otherChannelID); err != nil {
 				_ = bot.MessageReactionAdd(message.ChannelID, message.ID, "❌")
+			} else {
+				_ = bot.MessageReactionAdd(message.ChannelID, message.ID, "✅")
 			}
 		} else {
 			if err != database.ErrNotFound {
@@ -100,6 +102,71 @@ func HandleMessage(bot *discordgo.Session, message *discordgo.MessageCreate) {
 			}
 		}
 	}
+}
+
+func HandlePull(bot *discordgo.Session, message *discordgo.Message) {
+	destinationChannelID := message.ChannelID
+	sourceChannelID, err := database.GetOtherChannelIDFromConnection(destinationChannelID)
+	if err != nil {
+		log.Println("[HandlePull] Unable to get other channel ID:", err.Error())
+		return
+	}
+	messages, err := bot.ChannelMessages(sourceChannelID, 50, "", "", "")
+	var messagesToSend []*discordgo.Message
+	for _, m := range messages {
+		if m.Author.ID == bot.State.User.ID || strings.HasPrefix(m.Content, botCommandPrefix) {
+			// Ignore messages from bot & commands
+			continue
+		}
+		pending := false
+		for _, reaction := range m.Reactions {
+			if reaction.Emoji.Name == "⌛" {
+				pending = true
+				break
+			}
+		}
+		if !pending {
+			continue
+		}
+		messagesToSend = append([]*discordgo.Message{m}, messagesToSend...)
+	}
+	for _, messageToSend := range messagesToSend {
+		if err := proxyMessage(bot, messageToSend, destinationChannelID); err != nil {
+			log.Println("[HandlePull] Unable to send message:", err.Error())
+			_ = bot.MessageReactionAdd(messageToSend.ChannelID, messageToSend.ID, "❌")
+		} else {
+			_ = bot.MessageReactionRemove(messageToSend.ChannelID, messageToSend.ID, "⌛", bot.State.User.ID)
+			_ = bot.MessageReactionAdd(messageToSend.ChannelID, messageToSend.ID, "✅")
+		}
+	}
+}
+
+func proxyMessage(bot *discordgo.Session, message *discordgo.Message, targetChannelID string) error {
+	var attachments string
+	for _, attachment := range message.Attachments {
+		attachments += " " + attachment.URL
+	}
+	if len(message.Content) > 0 {
+		attachments = " " + attachments
+	}
+	log.Printf("[proxyMessage] Proxying message from=%s to=%s", message.ChannelID, targetChannelID)
+	_, err := bot.ChannelMessageSend(targetChannelID, message.Content+attachments)
+	return err
+}
+
+func HandleLock(bot *discordgo.Session, message *discordgo.Message, unlock bool) {
+	var action string
+	if unlock {
+		action = "unlock"
+	} else {
+		action = "lock"
+	}
+	err := database.LockChannel(message.ChannelID, unlock)
+	if err != nil {
+		_ = sendEmbed(bot, message.ChannelID, "Failed to "+action+" channel", err.Error())
+		return
+	}
+	_ = sendEmbed(bot, message.ChannelID, "Channel has been "+action+"ed", "")
 }
 
 func HandleClear(bot *discordgo.Session, message *discordgo.Message, target bool) {
@@ -111,9 +178,9 @@ func HandleClear(bot *discordgo.Session, message *discordgo.Message, target bool
 			log.Println("[HandleClear] Unable to get other channel ID:", err.Error())
 			return
 		}
-		messages, err = bot.ChannelMessages(otherChannelId, 100, "", "", "")
+		messages, err = bot.ChannelMessages(otherChannelId, 99, "", "", "")
 	} else {
-		messages, err = bot.ChannelMessages(message.ChannelID, 100, message.ID, "", "")
+		messages, err = bot.ChannelMessages(message.ChannelID, 99, message.ID, "", "")
 	}
 	if err != nil {
 		log.Println("[HandleClear] Failed to retrieve messages in channel:", err.Error())
@@ -122,7 +189,8 @@ func HandleClear(bot *discordgo.Session, message *discordgo.Message, target bool
 	if len(messages) == 0 {
 		return
 	}
-	ids := make([]string, 0, len(messages))
+	ids := make([]string, 0, len(messages)+1)
+	ids = append(ids, message.ID)
 	for _, m := range messages {
 		ids = append(ids, m.ID)
 	}

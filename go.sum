@@ -1,5 +1,7 @@
 github.com/TwiN/gocache v1.2.4 h1:AfJ1YRcxtQ/zZEN61URDwk/dwFG7LSRenU5qIm9dQzo=
 github.com/TwiN/gocache v1.2.4/go.mod h1:BjabsQQy6z5uHDorHa4LJVPEzFeitLIDbCtdv3gc1gA=
+github.com/TwiN/gocache/v2 v2.0.0 h1:CPbDNKdSJpmBkh7aWcO7D3KK1yWaMlwX+3dsBPE8/so=
+github.com/TwiN/gocache/v2 v2.0.0/go.mod h1:j4MABVaia2Tp53ERWc/3l4YxkswtPjB2hQzmL/kD/VQ=
 github.com/bwmarrin/discordgo v0.23.2 h1:BzrtTktixGHIu9Tt7dEE6diysEF9HWnXeHuoJEt2fH4=
 github.com/bwmarrin/discordgo v0.23.2/go.mod h1:c1WtWUGN6nREDmzIpyTp/iD3VYt4Fpx+bVyfBG7JE+M=
 github.com/dustin/go-humanize v1.0.0 h1:VSnTsYCnlFHaM2/igO1h6X3HA71jcobQuxemgkq4zYo=
