@@ -203,11 +203,14 @@ func HandleClear(bot *discordgo.Session, message *discordgo.Message, target bool
 			for _, id := range ids {
 				if err := bot.ChannelMessageDelete(messages[0].ChannelID, id); err != nil {
 					log.Println("[HandleClear] Failed to delete message:", err.Error())
-					return
+					if !strings.Contains(err.Error(), "Unknown Message") {
+						return
+					}
 				}
 			}
+		} else {
+			return
 		}
-		return
 	}
 	if len(ids) == 100 {
 		// If there's 100 results, there's probably more messages left to delete
