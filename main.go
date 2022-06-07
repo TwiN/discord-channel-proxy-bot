@@ -197,9 +197,20 @@ func HandleClear(bot *discordgo.Session, message *discordgo.Message, target bool
 	}
 	if err := bot.ChannelMessagesBulkDelete(messages[0].ChannelID, ids); err != nil {
 		log.Println("[HandleClear] Failed to delete messages:", err.Error())
+		if strings.Contains(err.Error(), "can only bulk delete messages that are under 14 days old") {
+			// Try to delete them one at a time.
+			log.Println("[HandleClear] Deleting messages one at a time instead")
+			for _, id := range ids {
+				if err := bot.ChannelMessageDelete(messages[0].ChannelID, id); err != nil {
+					log.Println("[HandleClear] Failed to delete message:", err.Error())
+					return
+				}
+			}
+		}
 		return
 	}
 	if len(ids) == 100 {
+		// If there's 100 results, there's probably more messages left to delete
 		HandleClear(bot, message, target)
 	}
 }
